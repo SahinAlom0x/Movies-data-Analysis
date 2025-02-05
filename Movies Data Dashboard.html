@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movies Data Dashboard</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+            position: relative;
+        }
+        h2 {
+            background: #333;
+            color: #fff;
+            padding: 20px;
+            margin: 0;
+            font-size: 24px;
+        }
+        #upload-container {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 10px;
+            background: #fff;
+            border-radius: 5px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        #dashboard {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            padding: 20px;
+            max-width: 90%;
+            margin: auto;
+        }
+        .chart-container {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            height: 400px;
+        }
+        input {
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            width: 100%;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+    <h2>Movies Data Dashboard</h2>
+    <div id="upload-container">
+        <input type="file" id="fileInput" accept=".json">
+    </div>
+    <div id="dashboard">
+        <div id="chart1" class="chart-container"></div>
+        <div id="chart2" class="chart-container"></div>
+        <div id="chart3" class="chart-container"></div>
+        <div id="chart4" class="chart-container"></div>
+        <div id="chart5" class="chart-container"></div>
+        <div id="chart6" class="chart-container"></div>
+    </div>
+
+    <script>
+        document.getElementById('fileInput').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const data = JSON.parse(e.target.result);
+                    generateDashboard(data);
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        function generateDashboard(data) {
+            let titles = data.map(d => d.title);
+            let ratings = data.map(d => d.vote_average);
+            let popularity = data.map(d => d.popularity);
+            let releaseYears = data.map(d => new Date(d.release_date).getFullYear());
+            let voteCounts = data.map(d => d.vote_count);
+
+            Plotly.newPlot('chart1', [{
+                x: titles.slice(0, 10),
+                y: ratings.slice(0, 10),
+                type: 'bar',
+                marker: { color: '#007bff' }
+            }], { title: 'Top Rated Movies', xaxis: { title: 'Movie' }, yaxis: { title: 'Rating' } });
+
+            Plotly.newPlot('chart2', [{
+                x: releaseYears,
+                y: popularity,
+                type: 'scatter',
+                mode: 'markers',
+                marker: { color: '#dc3545' }
+            }], { title: 'Movie Popularity Over Time', xaxis: { title: 'Year' }, yaxis: { title: 'Popularity' } });
+
+            Plotly.newPlot('chart3', [{
+                x: ratings,
+                type: 'histogram',
+                marker: { color: '#28a745' }
+            }], { title: 'Ratings Distribution', xaxis: { title: 'Rating' }, yaxis: { title: 'Count' } });
+
+            let yearCounts = {};
+            releaseYears.forEach(year => { yearCounts[year] = (yearCounts[year] || 0) + 1; });
+            Plotly.newPlot('chart4', [{
+                x: Object.keys(yearCounts),
+                y: Object.values(yearCounts),
+                type: 'bar',
+                marker: { color: '#6610f2' }
+            }], { title: 'Movies Released Per Year', xaxis: { title: 'Year' }, yaxis: { title: 'Number of Movies' } });
+
+            Plotly.newPlot('chart5', [{
+                x: popularity,
+                y: ratings,
+                mode: 'markers',
+                type: 'scatter',
+                marker: { color: '#ff8800', size: 8 }
+            }], { title: 'Popularity vs Ratings', xaxis: { title: 'Popularity' }, yaxis: { title: 'Rating' } });
+
+            Plotly.newPlot('chart6', [{
+                x: voteCounts,
+                type: 'histogram',
+                marker: { color: '#17a2b8' }
+            }], { title: 'Vote Count Distribution', xaxis: { title: 'Vote Count' }, yaxis: { title: 'Frequency' } });
+        }
+    </script>
+</body>
+</html>
